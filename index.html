@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文件下载中心</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: system-ui, sans-serif;
+        }
+        body {
+            background-color: #1f2937;
+            color: #f3f4f6;
+            padding: 40px 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #38bdf8;
+        }
+        #searchInput {
+            width: 100%;
+            padding: 14px 18px;
+            border-radius: 10px;
+            border: none;
+            font-size: 16px;
+            margin-bottom:25px;
+        }
+        .file-item{
+            background:#374151;
+            padding:16px 20px;
+            border-radius:10px;
+            margin-bottom:12px;
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+        }
+        .file-item a{
+            color:#38bdf8;
+            text-decoration:none;
+        }
+        .file-item a:hover{
+            text-decoration:underline;
+        }
+        /* 管理员区域样式 */
+        .admin-area{
+            background:#2d3748;
+            padding:20px;
+            border-radius:10px;
+            margin-bottom:30px;
+        }
+        .admin-area input{
+            padding:10px;
+            border-radius:6px;
+            border:none;
+            width:70%;
+            margin-right:8px;
+        }
+        .admin-area button{
+            padding:10px 16px;
+            border:none;
+            border-radius:6px;
+            background:#38bdf8;
+            cursor:pointer;
+        }
+        #uploadBox{
+            margin-top:15px;
+            display:none;
+        }
+        .code-block{
+            background:#1f2937;
+            padding:10px;
+            border-radius:6px;
+            margin-top:8px;
+            color:#90ee90;
+            word-break:break-all;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>文件下载中心</h1>
+
+        <!-- 管理员上传区域 -->
+        <div class="admin-area">
+            <h3 style="margin-bottom:12px;">管理员入口</h3>
+            <input type="password" id="pwdInput" placeholder="输入管理员密码">
+            <button onclick="checkPassword()">验证</button>
+            <div id="uploadBox">
+                <p style="margin:10px 0;color:#ffdd70;">✅密码正确！选择文件，自动生成列表代码</p>
+                <input type="file" id="fileSelect">
+                <p id="selectedFileName"></p>
+                <div class="code-block" id="codeOutput"></div>
+                <button onclick="copyCode()" style="margin-top:8px;">复制代码</button>
+            </div>
+        </div>
+
+        <input id="searchInput" placeholder="🔍 搜索文件名..." oninput="renderList()">
+        <div id="fileList">加载中...</div>
+    </div>
+
+<script>
+// ===== 密码：zhang0922，修正后的正确哈希 =====
+const ADMIN_PWD_HASH = "8c9781ffb256b431a5e38b9f7bd81df0c4bcbd0f835feb31126c4f5a7f4bb5e2";
+// ============================================================
+
+let fileList = [
+    {name:"SelectorScreen_BG_Right.jpg"}
+];
+
+let generateCode = "";
+
+// SHA256哈希计算函数
+async function sha256(str) {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(str);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    return hashHex;
+}
+
+// 校验管理员密码
+async function checkPassword(){
+    const inputPwd = document.getElementById("pwdInput").value;
+    const inputHash = await sha256(inputPwd);
+    if(inputHash === ADMIN_PWD_HASH){
+        document.getElementById("uploadBox").style.display="block";
+    }else{
+        alert("密码错误");
+    }
+}
+
+// 文件选择监听
+document.getElementById("fileSelect").onchange = function(){
+    if(this.files.length>0){
+        const fname = this.files[0].name;
+        document.getElementById("selectedFileName").innerText = "已选中："+ fname;
+        generateCode = `{name:"${fname}"}`;
+        document.getElementById("codeOutput").innerText = generateCode;
+    }
+}
+
+//复制代码
+function copyCode(){
+    navigator.clipboard.writeText(generateCode).then(()=>{
+        alert("复制成功！粘贴到 fileList 数组里");
+    })
+}
+
+// 渲染文件列表+搜索
+function renderList(){
+    const keyword = document.getElementById('searchInput').value.toLowerCase();
+    const box = document.getElementById('fileList');
+    box.innerHTML = "";
+    const filterFiles = fileList.filter(item=>item.name.toLowerCase().includes(keyword));
+    if(filterFiles.length===0){
+        box.innerHTML = "<div style='text-align:center;padding:30px;color:#aaa'>没有匹配文件</div>"
+        return;
+    }
+    filterFiles.forEach(f=>{
+        const div = document.createElement('div');
+        div.className="file-item";
+        const downloadUrl = `./files/${f.name}`;
+        div.innerHTML = `
+            <span>${f.name}</span>
+            <a href="${downloadUrl}" download>下载</a>
+        `
+        box.appendChild(div);
+    })
+}
+
+renderList();
+</script>
+</body>
+</html>
