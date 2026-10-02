@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文件下载中心</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: system-ui, sans-serif;
+        }
+        body {
+            background-color: #1f2937;
+            color: #f3f4f6;
+            padding: 40px 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #38bdf8;
+        }
+        #searchInput {
+            width: 100%;
+            padding: 14px 18px;
+            border-radius: 10px;
+            border: none;
+            font-size: 16px;
+            margin-bottom:25px;
+        }
+        .file-item{
+            background:#374151;
+            padding:16px 20px;
+            border-radius:10px;
+            margin-bottom:12px;
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+        }
+        .file-item a{
+            color:#38bdf8;
+            text-decoration:none;
+        }
+        .file-item a:hover{
+            text-decoration:underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>文件下载中心</h1>
+        <input id="searchInput" placeholder="🔍 搜索文件名..." oninput="renderList()">
+        <div id="fileList">加载中...</div>
+    </div>
+
+<script>
+// =========这里改成你的信息！============
+const username = "你的用户名";
+const repo = "仓库名";
+const branch = "main";
+// ======================================
+let fileList = [];
+
+// 拉取files文件夹文件列表
+async function getFiles(){
+    try{
+        const res = await fetch(`https://api.github.com/repos/${username}/${repo}/contents/files?ref=${branch}`);
+        const data = await res.json();
+        if(!Array.isArray(data)){
+            document.getElementById('fileList').innerHTML = "<div style='text-align:center;padding:30px;color:#aaa'>files文件夹为空或不存在</div>";
+            return;
+        }
+        // 过滤掉子文件夹，只保留文件
+        fileList = data.filter(item=>item.type==="file");
+        renderList();
+    }catch(err){
+        document.getElementById('fileList').innerHTML = "<div style='text-align:center;padding:30px;color:#aaa'>读取失败</div>";
+        console.error(err);
+    }
+}
+
+// 渲染文件列表+搜索
+function renderList(){
+    const keyword = document.getElementById('searchInput').value.toLowerCase();
+    const box = document.getElementById('fileList');
+    box.innerHTML = "";
+    const filterFiles = fileList.filter(item=>item.name.toLowerCase().includes(keyword));
+    if(filterFiles.length===0){
+        box.innerHTML = "<div style='text-align:center;padding:30px;color:#aaa'>没有匹配文件</div>"
+        return;
+    }
+    filterFiles.forEach(f=>{
+        const div = document.createElement('div');
+        div.className="file-item";
+        // 直接访问pages下载地址
+        const downloadUrl = `https://${username}.github.io/${repo}/files/${f.name}`;
+        div.innerHTML = `
+            <span>${f.name}</span>
+            <a href="${downloadUrl}" download>下载</a>
+        `
+        box.appendChild(div);
+    })
+}
+
+// 页面加载自动获取文件
+getFiles();
+</script>
+</body>
+</html>
