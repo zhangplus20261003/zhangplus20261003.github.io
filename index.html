@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<title>notepad</title>
+</head>
+<style type="text/css">
+ol,ul{
+display:block;
+list-style-type:none;
+margin:3px;
+}
+</style><body>
+<div>&lt;!DOCTYPE html&gt;<br>
+&lt;html lang="zh-CN"&gt;<br>
+&lt;head&gt;<br>
+&lt;meta charset="UTF-8"&gt;<br>
+&lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;<br>
+&lt;title&gt;&#25991;&#20214;&#19979;&#36733;&#20013;&#24515;&lt;/title&gt;<br>
+&lt;style&gt;<br>
+*{margin:0;padding:0;box-sizing:border-box;font-family:system-ui}<br>
+body{background:#181926;color:#e4e4e7;padding:20px;max-width:1100px;margin:0 auto}<br>
+h1{margin-bottom:24px;color:#fff;border-left:4px solid #4f46e5;padding-left:12px}<br>
+.search{padding:10px 14px;width:100%;margin-bottom:20px;background:#24273a;border:1px solid #363a4f;color:#fff;border-radius:8px;font-size:16px}<br>
+.folder{margin:10px 0;background:#24273a;padding:14px;border-radius:10px}<br>
+.folder-name{font-size:18px;font-weight:bold;margin-bottom:10px;color:#80bfff;cursor:pointer}<br>
+.file-item{padding:8px 6px;border-bottom:#363a4f 1px solid;display:flex;justify-content:space-between}<br>
+a{color:#9ccfd8;text-decoration:none}<br>
+a:hover{text-decoration:underline}<br>
+&lt;/style&gt;<br>
+&lt;/head&gt;<br>
+&lt;body&gt;<br>
+&lt;h1&gt;&#128193; &#25991;&#20214;&#19979;&#36733;&#20013;&#24515;&lt;/h1&gt;<br>
+&lt;input class="search" placeholder="&#25628;&#32034;&#25991;&#20214;..." id="searchInput"&gt;<br>
+&lt;div id="fileList"&gt;&lt;/div&gt;<br>
+<br>
+&lt;script&gt;<br>
+// ==========&#22312;&#36825;&#37324;&#20462;&#25913;&#37197;&#32622;&#65281;==========<br>
+const repoName = "zhangplus20261003.github.io";<br>
+const username = "zhangplus20261003";<br>
+const branch = "main";<br>
+const scanTargetFolder = "/files"; // &#21482;&#25195;&#25551;&#36825;&#20010;&#25991;&#20214;&#22841;&#65281;<br>
+// ===================================<br>
+<br>
+const baseUrl = `https://api.github.com/repos/${username}/${repoName}/contents`;<br>
+<br>
+async function loadFiles(path){<br>
+&nbsp;&nbsp;&nbsp; const res = await fetch(`${baseUrl}${path}`);<br>
+&nbsp;&nbsp;&nbsp; const data = await res.json();<br>
+&nbsp;&nbsp;&nbsp; const container = document.getElementById("fileList");<br>
+<br>
+&nbsp;&nbsp;&nbsp; const div = document.createElement("div");<br>
+&nbsp;&nbsp;&nbsp; div.className = "folder";<br>
+&nbsp;&nbsp;&nbsp; const title = document.createElement("div");<br>
+&nbsp;&nbsp;&nbsp; title.className = "folder-name";<br>
+&nbsp;&nbsp;&nbsp; title.innerText = path;<br>
+&nbsp;&nbsp;&nbsp; div.appendChild(title);<br>
+<br>
+&nbsp;&nbsp;&nbsp; data.forEach(item=&gt;{<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; const line = document.createElement("div");<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; line.className="file-item";<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; if(item.type==="dir"){<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; line.innerHTML=`&#128194; ${item.name}`;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; line.onclick=()=&gt;loadFiles(`${path}/${item.name}`);<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; }else{<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; line.innerHTML=`&#128196; ${item.name} &lt;a href="${item.download_url}" download&gt;&#19979;&#36733;&lt;/a&gt;`;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; }<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; div.appendChild(line);<br>
+&nbsp;&nbsp;&nbsp; })<br>
+&nbsp;&nbsp;&nbsp; container.appendChild(div);<br>
+}<br>
+<br>
+// &#21551;&#21160;&#65306;&#30452;&#25509;&#21152;&#36733;&#25351;&#23450;&#25991;&#20214;&#22841;<br>
+loadFiles(scanTargetFolder);<br>
+<br>
+//&#25628;&#32034;&#21151;&#33021;<br>
+document.getElementById("searchInput").oninput=e=&gt;{<br>
+&nbsp;&nbsp;&nbsp; const val = e.target.value.toLowerCase();<br>
+&nbsp;&nbsp;&nbsp; document.querySelectorAll(".file-item").forEach(el=&gt;{<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; const text = el.innerText.toLowerCase();<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; el.style.display = text.includes(val) ? "flex":"none";<br>
+&nbsp;&nbsp;&nbsp; })<br>
+}<br>
+&lt;/script&gt;<br>
+&lt;/body&gt;<br>
+&lt;/html&gt;<br>
+</div>
+</body>
+</html>
